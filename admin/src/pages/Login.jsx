@@ -1,8 +1,9 @@
 import axios from 'axios'
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { DoctorContext } from '../context/DoctorContext'
 import { AdminContext } from '../context/AdminContext'
 import { toast } from 'react-toastify'
+import HospitalLogo from '../components/HospitalLogo'
 
 const Login = () => {
 
@@ -11,7 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
   const { setDToken } = useContext(DoctorContext)
   const { setAToken } = useContext(AdminContext)
@@ -19,50 +20,149 @@ const Login = () => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
-    if (state === 'Admin') {
-
-      const { data } = await axios.post(backendUrl + '/api/admin/login', { email, password })
-      if (data.success) {
-        setAToken(data.token)
-        localStorage.setItem('aToken', data.token)
+    try {
+      if (state === 'Admin') {
+        const { data } = await axios.post(backendUrl + '/api/admin/login', { email, password })
+        if (data.success) {
+          localStorage.removeItem('dToken')
+          setDToken('')
+          setAToken(data.token)
+          localStorage.setItem('aToken', data.token)
+        } else {
+          toast.error(data.message)
+        }
       } else {
-        toast.error(data.message)
+        const { data } = await axios.post(backendUrl + '/api/doctor/login', { email, password })
+        if (data.success) {
+          localStorage.removeItem('aToken')
+          setAToken('')
+          setDToken(data.token)
+          localStorage.setItem('dToken', data.token)
+        } else {
+          toast.error(data.message)
+        }
       }
-
-    } else {
-
-      const { data } = await axios.post(backendUrl + '/api/doctor/login', { email, password })
-      if (data.success) {
-        setDToken(data.token)
-        localStorage.setItem('dToken', data.token)
-      } else {
-        toast.error(data.message)
-      }
-
+    } catch (error) {
+      console.error(error)
+      toast.error(error.response?.data?.message || error.message)
     }
 
   }
 
   return (
-    <form onSubmit={onSubmitHandler} className='min-h-[80vh] flex items-center'>
-      <div className='flex flex-col gap-3 m-auto items-start p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-[#5E5E5E] text-sm shadow-lg'>
-        <p className='text-2xl font-semibold m-auto'><span className='text-primary'>{state}</span> Login</p>
-        <div className='w-full '>
-          <p>Email</p>
-          <input onChange={(e) => setEmail(e.target.value)} value={email} className='border border-[#DADADA] rounded w-full p-2 mt-1' type="email" required />
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-sky-50/50 flex flex-col justify-center items-center px-4 py-12'>
+      
+      {/* Top Branding */}
+      <div className='text-center mb-6'>
+        <div className='inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-slate-200/80 text-slate-700 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 shadow-sm'>
+          <span className='w-2 h-2 rounded-full bg-blue-600 animate-pulse'></span>
+          Hospital Management Portal
         </div>
-        <div className='w-full '>
-          <p>Password</p>
-          <input onChange={(e) => setPassword(e.target.value)} value={password} className='border border-[#DADADA] rounded w-full p-2 mt-1' type="password" required />
+        <div className='flex justify-center mb-3'>
+          <HospitalLogo size="lg" subtitle="Management & Clinical Access" />
         </div>
-        <button className='bg-primary text-white w-full py-2 rounded-md text-base'>Login</button>
-        {
-          state === 'Admin'
-            ? <p>Doctor Login? <span onClick={() => setState('Doctor')} className='text-primary underline cursor-pointer'>Click here</span></p>
-            : <p>Admin Login? <span onClick={() => setState('Admin')} className='text-primary underline cursor-pointer'>Click here</span></p>
-        }
+        <p className='text-slate-500 text-xs sm:text-sm font-medium'>Authorized Medical Staff & Administration Access</p>
       </div>
-    </form>
+
+      {/* Main Login Card */}
+      <div className='w-full max-w-md bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-medical-lg'>
+        
+        {/* Role Tabs */}
+        <div className='grid grid-cols-2 p-1.5 bg-slate-100/80 rounded-2xl mb-6'>
+          <button
+            type='button'
+            onClick={() => { setState('Admin'); setEmail(''); setPassword(''); }}
+            className={`py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+              state === 'Admin'
+                ? 'bg-white text-blue-700 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Hospital Admin
+          </button>
+          <button
+            type='button'
+            onClick={() => { setState('Doctor'); setEmail(''); setPassword(''); }}
+            className={`py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+              state === 'Doctor'
+                ? 'bg-white text-blue-700 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Doctor Portal
+          </button>
+        </div>
+
+        <form onSubmit={onSubmitHandler} className='flex flex-col gap-4'>
+          <div>
+            <label className='block text-xs font-semibold text-slate-700 mb-1.5'>
+              {state === 'Admin' ? 'Administrator Email' : 'Doctor Work Email'}
+            </label>
+            <input 
+              onChange={(e) => setEmail(e.target.value)} 
+              value={email} 
+              className='w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all text-slate-800' 
+              type="email" 
+              placeholder={state === 'Admin' ? 'admin@carepulse.com' : 'doctor@carepulse.com'}
+              required 
+            />
+          </div>
+
+          <div>
+            <label className='block text-xs font-semibold text-slate-700 mb-1.5'>
+              Password
+            </label>
+            <input 
+              onChange={(e) => setPassword(e.target.value)} 
+              value={password} 
+              className='w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 transition-all text-slate-800' 
+              type="password" 
+              placeholder='Enter your secure password'
+              required 
+            />
+          </div>
+
+          <button 
+            type='submit'
+            className='w-full mt-2 py-3 px-4 text-sm font-semibold text-white rounded-xl btn-medical shadow-medical transition-all'
+          >
+            Sign in as {state === 'Admin' ? 'Administrator' : 'Doctor'} &rarr;
+          </button>
+
+          <div className='pt-3 text-center border-t border-slate-100 text-xs text-slate-500'>
+            {state === 'Admin' ? (
+              <p>
+                Practicing clinician?{' '}
+                <button 
+                  type='button'
+                  onClick={() => { setState('Doctor'); setEmail(''); setPassword(''); }} 
+                  className='text-blue-600 font-semibold hover:underline'
+                >
+                  Switch to Doctor Portal
+                </button>
+              </p>
+            ) : (
+              <p>
+                Hospital administration?{' '}
+                <button 
+                  type='button'
+                  onClick={() => { setState('Admin'); setEmail(''); setPassword(''); }} 
+                  className='text-sky-600 font-semibold hover:underline'
+                >
+                  Switch to Admin Login
+                </button>
+              </p>
+            )}
+          </div>
+        </form>
+
+      </div>
+
+      <p className='mt-6 text-center text-xs text-slate-400'>
+        Secured with End-to-End Hospital Data Encryption &bull; CarePulse Healthcare
+      </p>
+
+    </div>
   )
 }
 

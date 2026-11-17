@@ -1,6 +1,6 @@
+import "./config/env.js"
 import express from "express"
 import cors from 'cors'
-import 'dotenv/config'
 import connectDB from "./config/mongodb.js"
 import connectCloudinary from "./config/cloudinary.js"
 import userRouter from "./routes/userRoute.js"
@@ -23,7 +23,13 @@ app.use("/api/admin", adminRouter)
 app.use("/api/doctor", doctorRouter)
 
 app.get("/", (req, res) => {
-  res.send("API Working")
+  res.json({ success: true, message: "CarePulse API Working", status: "healthy" })
 });
+
+// global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).json({ success: false, message: err.message || "Internal Server Error" })
+})
 
 app.listen(port, () => console.log(`Server started on PORT:${port}`))

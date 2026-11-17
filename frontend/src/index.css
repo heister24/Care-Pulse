@@ -1,23 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * {
-    font-family: Outfit;
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+}
+
+body {
+    background-color: #F8FAFC;
+    color: #1E293B;
 }
 
 .active hr {
-    @apply block
+    @apply block bg-blue-600;
 }
 
-@media (max-width:740px) {
-    .active  p{
-       @apply text-white bg-primary
+@media (max-width: 740px) {
+    .active p {
+       @apply text-white bg-blue-600;
     }
 }
 
 ::-webkit-scrollbar {
-    @apply hidden
+    height: 6px;
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F1F5F9;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* Professional Clean Medical Blue Button */
+.btn-medical {
+    background-color: #2563eb;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-medical:hover {
+    background-color: #1d4ed8;
+    box-shadow: 0 4px 12px 0 rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
 }
